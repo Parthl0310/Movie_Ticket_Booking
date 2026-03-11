@@ -1,4 +1,4 @@
-import mongoose, { Mongoose, Types } from "mongoose";
+import mongoose from "mongoose";
 
 const userschema =new mongoose.Schema({
   _id:{
