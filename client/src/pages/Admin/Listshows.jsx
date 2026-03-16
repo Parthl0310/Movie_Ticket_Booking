@@ -3,35 +3,43 @@ import { dummyShowsData } from '../../assets/assets';
 import Loading from '../../components/Loading';
 import Title from '../../components/Admin/Title';
 import { dateformat } from '../../lib/dateformat';
+import { useAppcontext } from '../../context/Appcontext';
+import toast from 'react-hot-toast';
 
 const Listshows = () => {
-
+  const {axios,getToken,user}=useAppcontext();  
   const currency=import.meta.env.VITE_CURRENCY
   const [shows,setshows]=useState([]);
   const [loading,setloading]=useState(null);
 
   const getallshows=async()=>{
     try{
-      setshows([{
-        movie:dummyShowsData[0],
-        showDateTime: "2025-06-30T02:30:00.000Z",
-        showPrice: 59,
-        occupiedSeats: {
-                A1: "user_1",
-                B1: "user_2",
-                C1: "user_3"
-            }
-      }]);
-      setloading(false);
+      const {data}=await axios.get('/api/admin/all-shows',{
+        headers:{
+          Authorization:`Bearer ${await getToken()}`
+        }
+      })
+      
+      // console.log(data)
+      if(data.success){
+        setshows(data.shows);
+        setloading(false);
+      }
+      else{
+        toast.error(data.message);
+      }
     }
     catch(error){
-      console.error(error);
+      toast.error("Error Accures in Fetching The Data Of All Shows",error)
+      // console.error(error);
     }
   }
 
   useEffect(()=>{
-    getallshows();
-  },[])
+    if(user){
+      getallshows();
+    }
+  },[user])
 
   return !loading ? (
     <>
@@ -50,9 +58,9 @@ const Listshows = () => {
               {shows.map((show,index)=>(
                 <tr key={index} className='border-b border-primary/10 bg-primary/5 even:bg-primary/10' >
                   <td className='p-2 min-w-45 pl-5'>{show.movie.title}</td>
-                  <td className='p-2 '>{dateformat(show.movie.showDateTime)}</td>
-                  <td className='p-2 '>{Object.keys(show.occupiedSeats).length}</td>
-                  <td className='p-2 '>{Object.keys(show.occupiedSeats).length * show.showPrice}</td>
+                  <td className='p-2 '>{dateformat(show.showdatetime)}</td>
+                  <td className='p-2 '>{Object.keys(show.occupiedseats).length}</td>
+                  <td className='p-2 '>{Object.keys(show.occupiedseats ).length * show.showprice}</td>
 
                 </tr>
               ))}

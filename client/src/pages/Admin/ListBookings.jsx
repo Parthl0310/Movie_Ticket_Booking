@@ -4,8 +4,11 @@ import Loading from '../../components/Loading';
 import Title from '../../components/Admin/Title';
 import { List } from 'lucide-react';
 import { dateformat } from '../../lib/dateformat';
+import { useAppcontext } from '../../context/Appcontext';
+import toast from 'react-hot-toast';
 
 const ListBookings = () => {
+  const {axios,user,getToken}=useAppcontext()
 
   const currency=import.meta.env.VITE_CURRENCY
 
@@ -13,13 +16,30 @@ const ListBookings = () => {
   const [loading,setloading]=useState(true);
 
   const getbooking=async ()=>{
-    setbooking(dummyBookingData)
-    setloading(false);
+    try {
+      const {data}=await axios.get('/api/admin/all-bookings',{
+        headers:{
+          Authorization:`Bearer ${await getToken()}`
+        }
+      })
+      // console.log(data)
+      if(data.success){
+        setbooking(data.bookings)
+        setloading(false);
+      }
+      else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error("Error Accures in Fetching The Data Of All Bookings",error)
+    }
   };
 
   useEffect(()=>{
-    getbooking();
-  },[])
+    if(user){
+      getbooking();
+    }
+  },[user])
 
   return !loading ? (
     <>
@@ -41,7 +61,7 @@ const ListBookings = () => {
                 <tr key={index} className='border-b border-primary/20 bg-primary/5 even:bg-primary/10'>
                     <td className='p-2 min-w-45 pl-5'>{item.user.name}</td>
                     <td className='p-2 '>{item.show.movie.title}</td>
-                    <td className='p-2 '>{dateformat(item.show.showDateTime)}</td>
+                    <td className='p-2 '>{dateformat(item.show.showsatetime)}</td>
                     <td className='p-2 '>{Object.keys(item.bookedSeats).map((seat)=> item.bookedSeats[seat]).join(", ")}</td>
                     <td className='p-2 '>{currency}{item.amount}</td>
                                       

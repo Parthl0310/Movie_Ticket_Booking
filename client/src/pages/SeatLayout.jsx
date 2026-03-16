@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {dummyDateTimeData, dummyShowsData,assets} from '../assets/assets'
+import {assets} from '../assets/assets'
 import Loading from '../components/Loading'
 import {ClockIcon,ArrowRightIcon} from 'lucide-react'
 import isotimeformate from '../lib/isotimeformat'
 import BlurCircle from  '../components/BlurCircle'
 import toast from 'react-hot-toast'
+import { useAppcontext } from '../context/Appcontext'
 
 const SeatLayout = () => {
-
+  const {axios,getToken,user}=useAppcontext()
   const grouprows=[["A","B"],["C","D"],["E","F"],["G","H"],["I","J"]]
 
   const {id,date}=useParams();
@@ -16,20 +17,83 @@ const SeatLayout = () => {
   const[timeselected,settimeselected]=useState(null)
   const [show,setshow]=useState(null);
   const nevi=useNavigate();
+  const [occupiedseats,setoccupiedseats]=useState([])
+
   const getshow=async()=>{
-    const show=dummyShowsData.find((show)=> {return show._id===id} )
-    if(show){
-      setshow({
-        movie:show,
-        datetime: dummyDateTimeData
+    try {
+      const {data}=await axios.get(`/api/show/${id}`,{
+        headers:{
+          Authorization: `Bearer ${await getToken()}`
+        }
       })
+      // console.log(data)
+      if(data.success){
+        setshow({
+          movie:data.movie,
+          datetime:data.datetime
+        })
+      }
+      else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error("Error Accured While Fetching The Show Data",error);
+    }
+  }
+  // console.log(timeselected);
+  const getoccupiedseats=async()=>{
+    try {
+      const {data}=await axios.get(`/api/booking/seats/${timeselected.showId}`)
+      console.log(data)
+      if(data.success){
+        setoccupiedseats(data.occupiedseats);
+        console.log(occupiedseats)
+      }
+      else{
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error("Error Accured In Fetching Data Of Occupied Seats",error);
+    }
+  }
+
+  const bookTickets=async()=>{
+    try {
+      if(!user){
+        return toast.error("Please Login First")
+      }
+      
+      if(!timeselected || !seatselected.length){
+        return toast.error("Please Select Time or Seat First")
+      }
+
+      const {data}=await axios.post('api/booking/create',{showId:timeselected.showId
+        ,selectedSeats:seatselected
+      },{
+        headers:{
+          Authorization:`Bearer ${await getToken()}`  
+        }
+      })
+      console.log(data);
+      if(data.success){
+        window.location.href=data.url;
+      }
+      else{
+        toast.error(data.message);
+      }
+
+    } catch (error) {
+      toast.error("Error Accured While Making Booking")
     }
   }
 
   const handleseatclick=(seatid)=>{
     if(!timeselected) return toast("please Select time first")
-    if(!seatselected.includes(seatid) && seatselected.length>5){
+    if(!seatselected.includes(seatid) && seatselected.length>4){
       return toast("you can Select only 5 seats")
+    }
+    if(occupiedseats.includes(seatid)){
+      return toast("This seat is already booked")
     }
     setseatselected((prev)=>prev.includes(seatid) ? prev.filter(seat=>
       seat !== seatid) : [...prev,seatid])
@@ -44,7 +108,9 @@ const SeatLayout = () => {
             return (
               <button key={seatid} onClick={()=>handleseatclick(seatid)}
               className={`h-8 w-8 rounded border border-primary/60
-              cursor-pointer ${seatselected.includes(seatid) && "bg-primary text-white"}`}>
+              cursor-pointer ${seatselected.includes(seatid) && "bg-primary text-white"}
+                ${occupiedseats.includes(seatid) && "opacity-50"}
+              `}>
                 {seatid}
               </button>
             )
@@ -55,8 +121,15 @@ const SeatLayout = () => {
   )
 
   useEffect(()=>{
-    getshow()
-  },[])
+    if(user){
+      getshow()
+    }
+  },[user])
+  useEffect(()=>{
+    if(timeselected){
+      getoccupiedseats()
+    }
+  },[timeselected])
 
   return show ?(
     <div className='flex flex-col md:flex-row px-6 md:px-16 lg:px-40 placeholder-sky-30
@@ -98,7 +171,7 @@ const SeatLayout = () => {
               }
             </div>
           </div>
-          <button onClick={()=>nevi('/myBookings')} className='flex items-center
+          <button onClick={bookTickets} className='flex items-center
           gap-1 mt-20 px-10 py-3 text-sm bg-primary hover:bg-primary-dull 
           transition rounded-full font-medium cursor-pointer active:scale-95'>
             Proceed To Ckeckout

@@ -1,0 +1,119 @@
+// Function to check for available seat
+import Booking from "../models/Booking.js";
+import Show from "../models/Show.js"
+import Stripe from "stripe";
+
+const checkSeatAvailabilty=async(showId,selectedSeats)=>{
+    try {
+        const showData=await Show.findById(showId)
+
+        if(!showData){
+            return false;
+        }
+        const occupiedseats=showData.occupiedseats;
+        const isAnySeatTaken=selectedSeats.some(seat => occupiedseats[seat])
+
+        return !isAnySeatTaken;
+    } catch (error) {
+        console.log(error.message);
+        return false;
+    }
+}
+
+const CreateBooking=async (req,res)=>{
+    try {
+        const {userId}=req.auth();
+        const {showId,selectedSeats}=req.body;
+        const {origin}=req.headers;
+
+        //check if the seat is available or not
+        const isAvailable=await checkSeatAvailabilty(showId,selectedSeats);
+        if(!isAvailable){
+            return res.json({
+                success:false,
+                message:"Selected Seats Are Not available."
+            })
+        }
+
+        //get show details
+        const showData=await Show.findById(showId).populate('movie');
+        
+        // Create a new Booking
+        const booking = await Booking.create({
+            user:userId,
+            show:showId,
+            amount:showData.showprice * selectedSeats.length,
+            bookedSeats:selectedSeats,
+        })   
+        
+        selectedSeats.map((seat)=>{
+            showData.occupiedseats[seat]=userId
+        })
+
+        showData.markModified('occupiedseats');
+
+        await showData.save();
+
+        //stripe GateWay Intialize
+        const stripeInstance=new Stripe(process.env.STRIPE_SECRET_KEY)
+
+        //Creating line items to for stripe
+        const line_items=[{
+            price_data:{
+                currency:'usd',
+                product_data:{
+                    name:showData.movie.title
+                },
+                unit_amount:Math.floor(booking.amount)*100
+            },
+            quantity:1
+        }]
+
+        const session=await stripeInstance.checkout.sessions.create({
+            success_url:`${origin}/loading/myBookings`,
+            cancel_url:`${origin}/myBookings`,
+            line_items,
+            mode:'payment',
+            metadata:{
+                bookingId:booking._id.toString()
+            },
+            expires_at:Math.floor(Date.now()/1000)+(30*60)
+        })
+        booking.paymentLink=session.url
+        await booking.save() 
+        res.json({
+            success:true,
+            url:session.url
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+const getOccupiedSeats=async (req,res)=>{
+    try {
+        const {showId}=req.params;
+        const showData=await Show.findById(showId);
+
+        const occupiedseats=Object.keys(showData.occupiedseats);
+
+        res.json({
+            success:true,   
+            occupiedseats
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.json({
+            success:false,
+            message:error.message
+        })
+    }
+}
+
+export {CreateBooking,getOccupiedSeats}

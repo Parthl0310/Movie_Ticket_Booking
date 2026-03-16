@@ -2,16 +2,19 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import {StarIcon} from 'lucide-react'
 import timeFormat from '../lib/timeFormat'
+import { useAppcontext } from '../context/Appcontext'
 const Moviecard = ({movie}) => {
     const nevi=useNavigate();
+    const {image_base_url}=useAppcontext();
+    // console.log(movie);
   return (
     <div className='felx felx-col justify-between p-3 bg-gray-800 rounded-2xl
     hover:-translate-y-1 transition duration-300 w-66'>
-        <img onClick={()=>{nevi(`/movies/${movie._id}`); scrollTo(0,0)}} src={movie.backdrop_path} alt="" 
+        <img onClick={()=>{nevi(`/movies/${movie._id}`); scrollTo(0,0)}} src={image_base_url+movie.backdrop_path} alt="" 
         className='rounded-lg h-52 w-full object-right-bottom cursor-pointer'/>
         <p className='font-semibold mt-2 truncate'>{movie.title}</p>
         <p className='text-sm text-gray-400 mt-2'>
-            {new Date(movie.release_date).getFullYear()} - {movie.genres.slice(0,2).map(genres=>genres.name).join(" | ")} - {timeFormat(movie.runtime)}
+            {new Date(movie.release_date).getFullYear()} - {movie.genre.slice(0,2).map(genres=>genres.name).join(" | ")} - {timeFormat(movie.runtime)}
         </p>
         <div className='flex items-center justify-between mt-4 pb-3'>
             <button onClick={()=>{nevi(`/movies/${movie._id}`);scrollTo(0,0)}}

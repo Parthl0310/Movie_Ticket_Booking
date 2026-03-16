@@ -4,12 +4,13 @@ import { assets } from '../assets/assets'
 import {SearchIcon, TicketPlus, XIcon} from 'lucide-react'
 import { MenuIcon } from 'lucide-react'
 import { useClerk, UserButton, useUser } from '@clerk/clerk-react'
+import { useAppcontext } from '../context/Appcontext'
 const NavBar = () => {
     const [isopen,setopen]=useState(false)
     const {user} =useUser()
     const {openSignIn}=useClerk()
     const nev=useNavigate()
-
+    const {favroiteMovie}=useAppcontext()
   return (
     <div className='fixed top-0 left-0 z-50 w-full flex items-center justify-between px-6 md:px-16 lg:px-36 py-5'>
         <Link to='/' className='max-md:flex-1'>
@@ -26,7 +27,7 @@ const NavBar = () => {
             <Link onClick={()=>{scrollTo(0,0);setopen(false)}} to='/movies'>Movies</Link>
             <Link onClick={()=>{scrollTo(0,0);setopen(false)}} to='/'>Theaters</Link>
             <Link onClick={()=>{scrollTo(0,0);setopen(false)}} to='/'>Releases</Link>
-            <Link onClick={()=>{scrollTo(0,0);setopen(false)}} to='/favorite'>Favorite</Link>
+            {favroiteMovie.length>0 && (<Link onClick={()=>{scrollTo(0,0);setopen(false)}} to='/favorite'>Favorites</Link>)}
         </div>
         <div className='flex items-center gap-8'>
             <SearchIcon className='max-md:hidden w-6 h-6 cursor-pointer'/>
