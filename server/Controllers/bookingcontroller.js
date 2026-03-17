@@ -74,8 +74,10 @@ const CreateBooking=async (req,res)=>{
             cancel_url:`${origin}/myBookings`,
             line_items,
             mode:'payment',
-            metadata: {
-                bookingId: booking._id.toString()
+            payment_intent_data: {
+                metadata: {
+                    bookingId: booking._id.toString()
+                }
             },
             expires_at:Math.floor(Date.now()/1000)+(30*60)
         })
