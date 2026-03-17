@@ -5,6 +5,7 @@ import timeFormate from '../lib/timeFormat'
 import {dateformat} from '../lib/dateformat'
 import { useAppcontext } from '../context/Appcontext'
 import toast from 'react-hot-toast'
+import { Link } from 'react-router-dom'
 
 const MyBookings = () => {
   
@@ -65,9 +66,9 @@ const MyBookings = () => {
               <div className='flex flex-col md:items-end md:text-right justify-between p-4'>
                 <div className='flex items-center gap-4'>
                   <p className='text-2xl font-semibold mb-3'>{currency}{item.amount}</p>
-                  {!item.isPaid && <button className='
+                  {!item.isPaid && <Link to={item.paymentLink} className='
                   bg-primary px-4 py-1.5 mb-3 text-sm
-                  rounded-full font-medium cursor-pointer'>Pay Now</button>}
+                  rounded-full font-medium cursor-pointer'>Pay Now</Link>}
                 </div>
                 <div className='text-sm'>
                   <p><span>Total Tickets:</span>{item.bookedSeats.length}</p>

@@ -11,18 +11,20 @@ export const stripeWebhooks=async (request,response)=>{
     } catch (error) {
         return response.status(400).send(`webhooks Error: ${error.message}`)
     }
-    
+    console.log("fhdh")
     try {
         switch(event.type){
             case "payment_intent.succeeded":{
-                const paymentInent=event.data.object;
+                const paymentIntent=event.data.object;
                 const sessionList=await stripeInstance.checkout.sessions.list({
-                    payment_intent:paymentInent.id
+                    payment_intent:paymentIntent.id
                 })
 
                 const session=sessionList.data[0];
                 const {bookingId}=session.metadata;
-
+                console.log(paymentIntent)
+                console.log(sessionList)
+                console.log(bookingId)
                 await Booking.findByIdAndUpdate(bookingId,{
                     isPaid:true,
                     paymentLink:""
