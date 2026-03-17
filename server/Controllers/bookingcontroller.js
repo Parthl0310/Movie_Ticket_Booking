@@ -1,7 +1,7 @@
 // Function to check for available seat
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js"
-import Stripe from "stripe";
+import stripe from "stripe";
 
 const checkSeatAvailabilty=async(showId,selectedSeats)=>{
     try {
@@ -55,7 +55,7 @@ const CreateBooking=async (req,res)=>{
         await showData.save();
 
         //stripe GateWay Intialize
-        const stripeInstance=new Stripe(process.env.STRIPE_SECRET_KEY)
+        const stripeInstance=new stripe(process.env.STRIPE_SECRET_KEY)
 
         //Creating line items to for stripe
         const line_items=[{
