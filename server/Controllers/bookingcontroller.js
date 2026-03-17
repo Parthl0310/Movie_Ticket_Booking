@@ -55,7 +55,7 @@ const CreateBooking=async (req,res)=>{
         await showData.save();
 
         //stripe GateWay Intialize
-        const stripeInstance=new stripe(process.env.STRIPE_SECRET_KEY)
+        const stripeInstance=new stripe(`${process.env.STRIPE_SECRET_KEY}`)
 
         //Creating line items to for stripe
         const line_items=[{
