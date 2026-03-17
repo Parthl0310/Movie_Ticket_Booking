@@ -54,6 +54,6 @@ export const stripeWebhooks = async (request, response) => {
     response.json({ received: true });
   } catch (err) {
     console.error("Webhook Processing error", err);
-    response.status(500).send("Internal Server Error");
+    response.status(500).send("Internal Server Error",err);
   }
 };
