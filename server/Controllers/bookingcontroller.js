@@ -55,7 +55,7 @@ const CreateBooking=async (req,res)=>{
         await showData.save();
 
         //stripe GateWay Intialize
-        const stripeInstance=new stripe(`${process.env.STRIPE_SECRET_KEY}`)
+        const stripeInstance=new stripe(process.env.STRIPE_SECRET_KEY)
 
         //Creating line items to for stripe
         const line_items=[{
@@ -74,10 +74,8 @@ const CreateBooking=async (req,res)=>{
             cancel_url:`${origin}/myBookings`,
             line_items,
             mode:'payment',
-            payment_intent_data: {
-                metadata: {
-                    bookingId: booking._id.toString()
-                }
+            metadata: {
+                bookingId: booking._id.toString()
             },
             expires_at:Math.floor(Date.now()/1000)+(30*60)
         })

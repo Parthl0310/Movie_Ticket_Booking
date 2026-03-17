@@ -2,7 +2,7 @@ import stripe from "stripe";
 import Booking from "../models/Booking.js";
 
 const stripeWebhooks = async (request, response) => {
-  const stripeInstance = new stripe(`${process.env.STRIPE_SECRET_KEY}`);
+  const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
   const sig = request.headers["stripe-signature"];
 
   let event;
@@ -20,14 +20,12 @@ const stripeWebhooks = async (request, response) => {
     switch (event.type) {
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object;
+        const sessionList=await stripeInstance.checkout.sessions.list({
+          payment_intent:paymentIntent.id
+        })
 
-        const bookingId = paymentIntent.metadata.bookingId;
-
-        console.log("Booking ID:", bookingId);
-
-        if (!bookingId) {
-          throw new Error("Booking ID not found in metadata");
-        }
+        const session=sessionList.data[0];
+        const {bookingId}=session.metadata;
 
         await Booking.findByIdAndUpdate(bookingId, {
           isPaid: true,
@@ -42,7 +40,7 @@ const stripeWebhooks = async (request, response) => {
     response.json({ received: true });
   } catch (err) {
     console.error("Webhook Processing error", err);
-    response.status(500).send("Internal Server Error");
+    response.status(500).send(`Internal Server Error ${err.message}`);
   }
 };
 
