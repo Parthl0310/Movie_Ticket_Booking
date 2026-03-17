@@ -3,7 +3,9 @@ import User from "../models/User.js";
 import Booking from "../models/Booking.js";
 import Show from "../models/Show.js";
 
-export const inngest = new Inngest({ id: "Movie_ticket_booking" });
+export const inngest = new Inngest({ id: "Movie_ticket_booking",
+    eventKey: process.env.INNGEST_EVENT_KEY,
+ });
 
 // inngest to add user
 const syncUserCreation=inngest.createFunction(
