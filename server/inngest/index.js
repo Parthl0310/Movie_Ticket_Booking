@@ -118,10 +118,87 @@ const sendBookingConfirmationEmail = inngest.createFunction(
   },
 );
 
+//reminder mail to the user
+const reminderEmail = inngest.createFunction(
+  { id: "show-reminders-email" },
+  { cron: "0 */8 * * *" },
+  async ({ step }) => {
+    const now = new Date();
+    const in8hour = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    const windowStart = new Date(in8hour.getTime());
+    //Prepare reminder tasks
+    const reminderTasks = await step.run("Prepare-reminder-tasks", async () => {
+      const shows = await Show.find({
+        showdatetime: { $gte: windowStart, $lte: in8hour },
+      }).populate("movie");
+
+      const tasks = [];
+      for (const show of shows) {
+        if (!show.movie || !show.occupiedseats) continue;
+
+        const userIds = [...new set(Object.values(show.occupiedseats))];
+        if (userIds.length === 0) continue;
+
+        const users = await User.find({
+          _id: {
+            $in: userIds,
+          },
+        }).select("name Email");
+
+        for (const user of users) {
+          tasks.push({
+            userEmail: user.email,
+            userName: user.name,
+            movieTitle: show.movie.title,
+            showTime: show.showTime,
+          });
+        }
+      }
+      return tasks;
+    });
+
+    if (reminderTasks.length === 0) {
+      return { sent: 0, message: "No reminders To send." };
+    }
+    const results = await step.run("send-all-reminfers", async () => {
+      return await Promise.allSettled(
+        reminderTasks.map((task) =>
+          sendEmail({
+            to: task.userEmail,
+            subject: `Reminder: Your Movie ${task.movieTitle} starts soon!`,
+            body: ` <div style="font-family:Arial,sans-serif;line-height:1.5;">
+          <h2>Hllo ${task.userName},</h2>
+          <p> This is a quick reminder that your movie:
+          </p>
+          <p>
+          is scheduled For
+            <strong>Date:</strong>${new Date(task.showTime).toLocaleDateString("en-us", { timeZone: "Asia/Kolkata" })} at
+            <strong>Date:</strong>${new Date(task.showTime).toLocaleTimeString("en-us", { timeZone: "Asia/Kolkata" })}<br/>
+          </p>
+          <p>
+            It Starts in Approximately <strong> 30 min</strong> -make sure you're ready!
+          </p>
+          <p>Enjoy the Show!<br/> QuickShow team</p>
+        </div> `,
+          }),
+        ),
+      );
+    });
+    const sent=results.filter(r => r.status === 'fulfilled').length;
+    const failed=results.length -sent;
+    return{
+        sent,
+        failed,
+        message:`Sent ${sent} reminder(s), ${failed} failed.`
+    }
+  },
+);
+
 export const functions = [
   syncUserCreation,
   DeleteUser,
   UpdateUser,
   releaseSeatsAndDeleteBooking,
   sendBookingConfirmationEmail,
+  reminderEmail
 ];
