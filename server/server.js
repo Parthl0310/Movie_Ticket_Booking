@@ -1,7 +1,8 @@
+import dotenv from "dotenv"
+dotenv.config()
 import express from 'express';
 import cors from 'cors';
 import connectdb from './configs/db.js';
-import dotenv from "dotenv"
 import { clerkMiddleware  } from '@clerk/express'
 import{serve} from 'inngest/express'
 import { functions, inngest } from './inngest/index.js';
@@ -11,7 +12,6 @@ import adminRouter from './Routers.js/AdminRoutes.js';
 import userRouter from './Routers.js/UserRoutes.js';
 import { stripeWebhooks } from './Controllers/stripewebhooks.js';
 
-dotenv.config()
 
 
 const app=express();

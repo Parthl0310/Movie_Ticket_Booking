@@ -84,12 +84,15 @@ const CreateBooking=async (req,res)=>{
         await booking.save() 
         
         //  run inngest sheduler function to check payment status after 10 minutes
-        await inngest.send({
-            name:"app/checkpayment",
-            data:{
-                bookingId:booking._id.toString()
-            }
-        })
+        try {
+            const res = await inngest.send({
+            name: "app/checkpayment",
+            data: { bookingId: booking._id.toString() }
+            });
+            console.log("INNGEST SENT:", res);
+        } catch (err) {
+            console.log("INNGEST ERROR:", err.message);
+        }
 
         res.json({
             success:true,

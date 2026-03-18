@@ -1,3 +1,5 @@
+    import dotenv from "dotenv"
+    dotenv.config()
     import { Inngest } from "inngest";
     import User from "../models/User.js";
     import Booking from "../models/Booking.js";
@@ -46,7 +48,7 @@
             }
             await User.findByIdAndUpdate(id,updateduser);
         }
-
+        
     )
 
     // Ingest Function to cancel booking and release seats of show after 10 minutes of booking created if payment is not made
