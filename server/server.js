@@ -27,6 +27,9 @@ app.use(clerkMiddleware())
 await connectdb()
 
 app.get('/',(req,res)=>res.send('Server Is Live'))
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+})
 app.use('/api/inngest',serve({client:inngest,functions}))
 app.use('/api/show',showRouter)
 app.use('/api/booking',bookingRouter)
