@@ -1,6 +1,7 @@
 # MERN Movie Ticket Booking App
 
 A full-stack movie booking application built with React, Vite, Node.js, Express, MongoDB, and Vercel deployment support.
+https://movie-ticket-booking-wg21.vercel.app/
 
 ## Project Structure
 
@@ -18,7 +19,7 @@ A full-stack movie booking application built with React, Vite, Node.js, Express,
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Parthl0310/Movie_Ticket_Booking.git
 cd MERN
 ```
 
