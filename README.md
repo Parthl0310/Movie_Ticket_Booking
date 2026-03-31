@@ -137,7 +137,6 @@ The `server/vercel.json` file routes all requests to `server.js`.
 - Start backend: `cd server && npm run server`
 - Start frontend: `cd client && npm run dev`
 - Build frontend: `cd client && npm run build`
-- Lint frontend: `cd client && npm run lint`
 
 ## Useful Links
 
